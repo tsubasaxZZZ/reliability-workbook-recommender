@@ -35,6 +35,8 @@ jobs:
         uses: actions/configure-pages@v3
       - name: Build pages
         run: npm i && npm run build
+      - name: List files
+        run: ls -lR
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
