@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Processor</title>
+    <script src="app.js" defer></script>
+</head>
+
+<body>
+
+    <input type="file" id="input-csv" accept=".csv" style="display:none" />
+    <button id="upload-button" class="btn btn-primary">Upload CSV</button>
+    <button id="download-excel" class="btn btn-success" style="display:none">Download Excel</button>
+    <button id="reload-page" class="btn btn-secondary" style="display:none">Reset Page</button>
+    <div>
+        <ul>
+            <li>
+                <font color="red">This application runs in your browser. No data is uploaded to the Internet.</font>
+            </li>
+            <li>
+                This application currently only checks the following services:
+                <ul>
+                    <li>
+                        Virtual Machine
+                    </li>
+                    <li>
+                        Azure Kubernetes Service
+                    </li>
+                    <li>
+                        Storage Account
+                    </li>
+                    <li>
+                        Virtual Network Gateway
+                    </li>
+                    <li>
+                        Public IP Address
+                    </li>
+                </ul>
+            </li>
+            <li>
+                This application is for Japanese only. If you want to display other languages, please translate the browser functionality.
+            </li>
+        </ul>
+    </div>
+    <h2>Issues</h2>
+    <div id="issues"></div>
+    <h2>Resources</h2>
+    <div id="resources"></div>
+</body>
+
+</html>
