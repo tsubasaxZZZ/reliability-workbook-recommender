@@ -146,7 +146,105 @@ const checkItems = {
         checkFunction: (row) => {
             return ((parseInt(row['ActiveActiveVnetGwCount']) + parseInt(row['NAActiveActiveVnetGwCount'])) != 1) ? row : null;
         }
-    }
+    },
+    // for API Management
+    APIMUseOldPlatform: {
+        issue: "API Managementが以前のプラットフォーム(stv1)上で稼働している",
+        comment: "stv1 上にホストされた API Managemnt は、可用性ゾーン等の最新の Azure の機能を利用できません。stv1 プラットフォームでホストされている API Management インスタンスのサポートは、2024 年 8 月 31 日で廃止される予定です。",
+        recommendation: `stv1 から stv2 への移行をご検討ください。以下のドキュメントをご参照ください。<br><a href="https://learn.microsoft.com/ja-JP/azure/api-management/compute-infrastructure">https://learn.microsoft.com/ja-JP/azure/api-management/compute-infrastructure</a>`,
+        priority: 0,
+        checkFunction: (row) => {
+            return (parseInt(row['Stv2ApimCount']) != 1) ? row : null;
+        }
+    },
+    // for Azure Front Door and CDN
+    AFDStateIsNotRunning: {
+        issue: "Azure Front Door の状態が失敗している",
+        comment: "Azure Front Door の状態が失敗している",
+        recommendation: "Azure Front Door の状態が失敗している",
+        priority: 0,
+        checkFunction: (row) => {
+            return (parseInt(row['AfdActiveStateCount']) != 1) ? row : null;
+        }
+    },
+    UseAFDLegacy: {
+        issue: "以前の Azure Front Door SKU、CDN SKU を利用している",
+        comment: "以前の SKU を使用している場合最新の機能を活用できない可能性があります。また、一部のレガシー SKU は将来的にサポートが終了する可能性があります。これは、サービスの中断を引き起こす可能性があります。",
+        recommendation: `最新の Azure Front Door SKU、CDN SKU への移行を検討してください。これにより、最新の機能を活用できます。移行に関する詳細は以下のドキュメントをご参照ください。ただし、SKUの変更には追加のコストがかかる可能性がありますので、事前に確認してください。<br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/cdn/cdn-change-provider" target="_blank">https://learn.microsoft.com/ja-jp/azure/cdn/cdn-change-provider</a>`,
+        priority: 1,
+        checkFunction: (row) => {
+            return (parseInt(row['AfdNonLegacySkuCount']) != 1) ? row : null;
+        }
+    },
+    DBStateIsNotRunning: {
+        issue: "DB の状態が失敗している",
+        comment: "DB の状態が失敗している",
+        recommendation: "DB の状態が失敗している",
+        priority: 0,
+        checkFunction: (row) => {
+            return (parseInt(row['DBOnlineStateCount']) != 1) ? row : null;
+        }
+    },
+    NotUseProductionDBSKU: {
+        issue: "高可用性の SQL Database SKU を利用していない",
+        comment: "Premium/Business Criticalでは Always On可用性グループと同様のテクノロジーを使用して高可用性が実装されています。これにより、何らかの理由でプライマリ レプリカまたは読み取り可能なセカンダリ レプリカがクラッシュした場合に、フェールオーバー先となる完全に同期されたノードが常に存在することが保証されます。",
+        recommendation: `プロダクション環境では可用性を高めるため、Premium または Business CriticalのSKUを使用することを検討してください。ただし、SKUの変更には追加のコストがかかる可能性がありますので、事前に確認してください。<br>
+        <a href='https://learn.microsoft.com/ja-jp/azure/azure-sql/database/high-availability-sla' target="_blank">https://learn.microsoft.com/ja-jp/azure/azure-sql/database/high-availability-sla</a>`,
+        priority: 1,
+        checkFunction: (row) => {
+            return (parseInt(row['SqlPremiumOrBusinessCriticalOrDwh']) != 1) ? row : null;
+        }
+    },
+    NotUseGeoDBStorage: {
+        issue: "SQL Database のバックアップストレージが Geo 冗長でない",
+        comment: "SQL Database のバックアップストレージが Geo 冗長でない場合、リージョン全体の障害が発生したときにデータの復元が困難になる可能性があります。Geo 冗長ストレージは、プライマリリージョンのバックアップストレージに影響を与える障害から保護し、リージョン全体の障害が発生した場合でも別のリージョンからデータベースを復元することが可能になります。",
+        recommendation: `バックアップストレージの冗長性を Geo 冗長ストレージに変更することを検討してください。これにより、リージョン全体の障害が発生した場合でもデータの復元が可能になります。ただし、Geo 冗長ストレージは追加のコストがかかる可能性があるため、事前に確認してください。<br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/azure-sql/database/automated-backups-overview" target="_blank">https://learn.microsoft.com/ja-jp/azure/azure-sql/database/automated-backups-overview</a>`,
+        priority: 2,
+        checkFunction: (row) => {
+            return (parseInt(row['DBGeoStorage']) != 1) ? row : null;
+        }
+    },
+    NoCosmosDBReplica: {
+        issue: "Cosmos DB の読み取りリージョンが 1 つしかない",
+        comment: "Cosmos DB の読み取りリージョンが 1 つしかない場合で特定のリージョンで問題が発生した場合、サービスの可用性に影響を及ぼす可能性があります。",
+        recommendation: `Cosmos DB は、複数のリージョン間でデータをレプリケートする機能を提供しています。これにより、特定のリージョンがダウンした場合でも、他のリージョンからデータにアクセスすることが可能になります。従って、Cosmos DB の読み取りリージョンを増やすことを検討することをお勧めします。詳細については、以下のリンクをご参照ください。<br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/cosmos-db/high-availability" target="_blank">https://learn.microsoft.com/ja-jp/azure/cosmos-db/high-availability</a>`,
+        priority: 0,
+        checkFunction: (row) => {
+            // return (parseInt(row['Gt0DbReplica']) != 1) ? row : null;
+            return (parseInt(row['Gt0DbReplica']) != 0) ? row : null; // ToDo: Fix correct condition to check replica count
+        }
+    },
+    NotUseMultiWriteCosmosDB: {
+        issue: "Cosmos DB のマルチリージョン書き込みが有効になっていない",
+        comment: "Cosmos DB のマルチリージョン書き込みを有効にすることで、アプリケーションは最も近いリージョンにデータを書き込むことができ、パフォーマンスの向上が期待できます。",
+        recommendation: `Azure Cosmos DB を複数のリージョンで書き込みを受け付けるように構成することを検討してください。ただし、マルチリージョン書き込みの構成は競合を解決するための適切な戦略が必要です。詳細な情報と手順については、以下のドキュメントを参照してください。<br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/architecture/solution-ideas/articles/globally-distributed-mission-critical-applications-using-cosmos-db" target="_blank">https://learn.microsoft.com/ja-jp/azure/architecture/solution-ideas/articles/globally-distributed-mission-critical-applications-using-cosmos-db</a><br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/cosmos-db/high-availability" target="_blank">https://learn.microsoft.com/ja-jp/azure/cosmos-db/high-availability</a><br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/well-architected/services/data/cosmos-db/reliability" target="_blank">https://learn.microsoft.com/ja-jp/azure/well-architected/services/data/cosmos-db/reliability</a><br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/cosmos-db/nosql/how-to-multi-master" target="_blank">https://learn.microsoft.com/ja-jp/azure/cosmos-db/nosql/how-to-multi-master</a>
+        `,
+        priority: 2,
+        checkFunction: (row) => {
+            return ((parseInt(row['EnabledDbMultiWrite']) + parseInt(row['NADbMultiWrite'])) != 1) ? row : null;
+        }
+    },
+    NotUseCosmosDBAutomaticFO: {
+        issue: "Cosmos DB の自動フェールオーバーが有効になっていない",
+        comment: "Cosmos DBの自動フェールオーバーが有効になっていないと、障害が発生した場合にデータベースへのアクセスの可用性が低下する可能性があります。",
+        recommendation: `Cosmos DBの自動フェールオーバーを有効にすることを強く推奨します。これにより、障害が発生した場合でもデータベースへのアクセスの可用性が維持され、ビジネスの継続性が確保されます。<br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/architecture/solution-ideas/articles/globally-distributed-mission-critical-applications-using-cosmos-db" target="_blank">https://learn.microsoft.com/ja-jp/azure/architecture/solution-ideas/articles/globally-distributed-mission-critical-applications-using-cosmos-db</a><br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/cosmos-db/high-availability" target="_blank">https://learn.microsoft.com/ja-jp/azure/cosmos-db/high-availability</a><br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/well-architected/services/data/cosmos-db/reliability" target="_blank">https://learn.microsoft.com/ja-jp/azure/well-architected/services/data/cosmos-db/reliability</a><br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/cosmos-db/how-to-manage-database-account" target="_blank">https://learn.microsoft.com/ja-jp/azure/cosmos-db/how-to-manage-database-account</a>
+        `,
+        priority: 0,
+        checkFunction: (row) => {
+            return ((parseInt(row['ConfiguredAutomaticFailover']) + parseInt(row['NAAutomaticFailover'])) != 1) ? row : null;
+        }
+    },
 }
 
 // Mapping resource types to check functions
@@ -156,6 +254,13 @@ const resourceTypeChecks = {
     '*storageaccounts*': ["NoV2StorageEnabled", "NoRAStorageEnabled"],
     'microsoft.network/virtualnetworkgateways': ["NoAzVnetGwSku", "NoSucceededState", "NoGt1Capacity", "NoRouteVnetGwVpnType", "NoGen2VnetGw", "NoActiveActiveVnetGw"],
     'microsoft.network/publicipaddresses': ["OtherSku", "NoSucceededState", "NoAZ"],
+    'microsoft.apimanagement/service': ["OtherSku", "NoSucceededState", "NoAZ", "LowCapacity", "APIMUseOldPlatform"],
+    'microsoft.web/serverfarms': ["OtherSku", "RunningState", "NoAZ", "LowCapacity"],
+    'microsoft.web/sites': ["OtherSku", "RunningState"],
+    'microsoft.cdn/profiles': ["UseAFDLegacy", "AFDStateIsNotRunning"],
+    'microsoft.network/frontdoors': ["UseAFDLegacy", "AFDStateIsNotRunning"],
+    'microsoft.sql/servers/databases': ["NoAZ", "DBStateIsNotRunning", "NotUseProductionDBSKU", "NotUseGeoDBStorage"],
+    'microsoft.documentdb/databaseaccounts': ["NoCosmosDBReplica", "NotUseMultiWriteCosmosDB", "NotUseCosmosDBAutomaticFO"],
 };
 
 function processData(csvData) {
@@ -185,6 +290,7 @@ function processData(csvData) {
                 const result = check.checkFunction(rowObj);
 
                 if (result) {
+                    // Add the resource to the issue group if it doesn't exist
                     if (!groupedResults[check.issue]) {
                         groupedResults[check.issue] = {
                             issue: check.issue,
@@ -194,6 +300,7 @@ function processData(csvData) {
                             resources: []
                         };
                     }
+                    // Add the resource to the issue group
                     groupedResults[check.issue].resources.push(rowObj);
                 }
             });
