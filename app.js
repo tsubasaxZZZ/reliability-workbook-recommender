@@ -245,6 +245,29 @@ const checkItems = {
             return ((parseInt(row['ConfiguredAutomaticFailover']) + parseInt(row['NAAutomaticFailover'])) != 1) ? row : null;
         }
     },
+    UseV1AppGW: {
+        issue: "Application Gateway v1 が使用されている",
+        comment: "Application Gateway v1 は、可用性ゾーンが利用できない等 Application Gateway v2 に比べて機能が制限されています。また、2026 年 4 月にリタイアされる予定です。",
+        recommendation: `Application Gateway v2 への移行を検討してください。<br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/application-gateway/v1-retirement" target="_blank">https://learn.microsoft.com/ja-jp/azure/application-gateway/v1-retirement</a>
+        `,
+        priority: 0,
+        checkFunction: (row) => {
+            return (row['V2AppGwSkuCount'] != 1) ? row : null;
+        }
+    },
+    DisableAppGWAutoScale: {
+        issue: "Application Gateway の自動スケールが無効になっている",
+        comment: "自動スケールが無効になっていると、トラフィックの変動に対して適切にスケールアップまたはスケールダウンできません。これは、サービスのパフォーマンスの問題やダウンタイムを引き起こす可能性があります。",
+        recommendation: `Application Gateway の自動スケール機能を有効にすることを検討してください。これにより、システムは需要に応じてスケールアップまたはスケールダウンし、リソースの効率的な利用とサービスの高可用性を確保します。<br>
+        <a href="https://learn.microsoft.com/ja-jp/azure/application-gateway/application-gateway-autoscaling-zone-redundant" target="_blank">https://learn.microsoft.com/ja-jp/azure/application-gateway/application-gateway-autoscaling-zone-redundant</a>
+        `,
+        priority: 1,
+        checkFunction: (row) => {
+            return (row['AutoScaleAppGwCount'] != 1) ? row : null;
+        }
+    },
+    
 }
 
 // Mapping resource types to check functions
@@ -261,6 +284,7 @@ const resourceTypeChecks = {
     'microsoft.network/frontdoors': ["UseAFDLegacy", "AFDStateIsNotRunning"],
     'microsoft.sql/servers/databases': ["NoAZ", "DBStateIsNotRunning", "NotUseProductionDBSKU", "NotUseGeoDBStorage"],
     'microsoft.documentdb/databaseaccounts': ["NoCosmosDBReplica", "NotUseMultiWriteCosmosDB", "NotUseCosmosDBAutomaticFO"],
+    'microsoft.network/applicationgateways': ["RunningState", "NoAZ", "LowCapacity", "UseV1AppGW", "DisableAppGWAutoScale"],
 };
 
 function processData(csvData) {
