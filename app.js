@@ -267,6 +267,16 @@ const checkItems = {
             return (row['AutoScaleAppGwCount'] != 1) ? row : null;
         }
     },
+    NoFaultDomain: {
+        issue: "障害ドメインが利用されていない",
+        comment: "障害ドメインが利用されていない",
+        recommendation: `障害ドメインを利用してください。`,
+        priority: 1,
+        checkFunction: (row) => {
+            return (row['Gt0FaultDomainCount'] != 1) ? row : null;
+        }
+
+    }
     
 }
 
@@ -285,6 +295,7 @@ const resourceTypeChecks = {
     'microsoft.sql/servers/databases': ["NoAZ", "DBStateIsNotRunning", "NotUseProductionDBSKU", "NotUseGeoDBStorage"],
     'microsoft.documentdb/databaseaccounts': ["NoCosmosDBReplica", "NotUseMultiWriteCosmosDB", "NotUseCosmosDBAutomaticFO"],
     'microsoft.network/applicationgateways': ["RunningState", "NoAZ", "LowCapacity", "UseV1AppGW", "DisableAppGWAutoScale"],
+    'microsoft.compute/virtualmachinescalesets': ["LowCapacity", "NoFaultDomain", "NoUsePremorUltOSDisk"],
 };
 
 function processData(csvData) {
