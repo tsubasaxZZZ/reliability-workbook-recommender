@@ -575,8 +575,61 @@ const checkItems = {
             return (row['Gt0FaultDomainCount'] != 1) ? row : null;
         }
 
+    },
+    NoReliplicationEnabled: {
+        issue: {
+            ja: "No replication is enabled",
+            en: "No replication is enabled"
+        },
+        comment: {
+            ja: "No replication is enabled",
+            en: "No replication is enabled"
+        },
+        recommendation: {
+            ja: `No replication is enabled`,
+            en: `No replication is enabled`
+        },
+        priority: 1,
+        checkFunction: (row) => {
+            return ((parseInt(row['ReplicationEnabled']) + parseInt(row['NAReplicationEnabled'])) != 1) ? row : null;
+        }
+    },
+    NonProductionCapacityOfRedis: {
+        issue: {
+            ja: "Capacity is not meeting the production requirements",
+            en: "Capacity is not meeting the production requirements",
+        },
+        comment: {
+            ja: "Capacity is not meeting the production requirements",
+            en: "Capacity is not meeting the production requirements",
+        },
+        recommendation: {
+            ja: "Capacity is not meeting the production requirements",
+            en: "Capacity is not meeting the production requirements",
+        },
+        priority: 1,
+        checkFunction: (row) => {
+            return (parseInt(row['RedisDedicatedCapacityCount']) == 0) ? row : null;
+        }
+    },
+    NoAzureFirewallSucceededState: {
+        issue: {
+            ja: "Azure Firewall の状態が失敗している",
+            en: "Azure Firewall state is failed",
+        },
+        comment: {
+            ja: "Azure Firewall の状態が失敗している",
+            en: "Azure Firewall state is failed",
+        },
+        recommendation: {
+            ja: "Azure Firewall の状態が失敗している",
+            en: "Azure Firewall state is failed",
+        },
+        priority: 1,
+        checkFunction: (row) => {
+            return (parseInt(row['AzFWSucceededStateCount']) == 0) ? row : null;
+        }
     }
-    
 }
 
 // Mapping resource types to check functions
@@ -586,29 +639,30 @@ const resourceTypeChecks = {
     'microsoft.compute/virtualmachinescalesets': ["LowCapacity", "NoFaultDomain", "NoUsePremorUltOSDisk"],
     // Containers
     'microsoft.containerservice/managedclusters': ["NoAZorAS", "LowCapacity", "NoUsePremorUltOSDisk"],
-    // Databases
+    // Databases & Synapse(Dedicated SQL Pool)
     'microsoft.sql/servers/databases': ["NoAZ", "DBStateIsNotRunning", "NotUseProductionDBSKU", "NotUseGeoDBStorage"],
-      // ToDo: Synapse
     'microsoft.documentdb/databaseaccounts': ["NoCosmosDBReplica", "NotUseMultiWriteCosmosDB", "NotUseCosmosDBAutomaticFO"],
-      // ToDo: MySQL
+    // MySQL
+    'microsoft.dbformysql/flexibleservers' : ["DBStateIsNotRunning", "OtherSku", "NoReliplicationEnabled", "NoAZ"],
+    // PostgreSQL
     'microsoft.dbforpostgresql/flexibleservers': ["DBStateIsNotRunning", "OtherSku", "NoAZ", "NotUseFlexiblePostgreSQLAutomaticFO", "NoGeoBackup"],
-      // ToDo: Redis
+    // Redis
+    'microsoft.cache/redis': ["NoSucceededState", "OtherSku", "NoAZ", "NonProductionCapacityOfRedis"],
     // Integration
     'microsoft.apimanagement/service': ["OtherSku", "NoSucceededState", "NoAZ", "LowCapacity", "APIMUseOldPlatform"],
     // Networking
-      // ToDo: Azure Firewall
+    'microsoft.network/azurefirewalls': ["NoAzureFirewallSucceededState", "NoAZ"],
     'microsoft.cdn/profiles': ["UseAFDLegacy", "AFDStateIsNotRunning"],
     'microsoft.network/frontdoors': ["UseAFDLegacy", "AFDStateIsNotRunning"],
     'microsoft.network/applicationgateways': ["RunningState", "NoAZ", "LowCapacity", "UseV1AppGW", "DisableAppGWAutoScale"],
-      // ToDo: Load Balancer
     'microsoft.network/publicipaddresses': ["OtherSku", "NoSucceededState", "NoAZ"],
     'microsoft.network/virtualnetworkgateways': ["NoAzVnetGwSku", "NoSucceededState", "NoGt1Capacity", "NoRouteVnetGwVpnType", "NoGen2VnetGw", "NoActiveActiveVnetGw"],
+    'microsoft.network/loadbalancers': ["OtherSku", "NoSucceededState", "NoAZ"],
     // Storage
     '*storageaccounts*': ["NoV2StorageEnabled", "NoRAStorageEnabled"],
     // Web
     'microsoft.web/serverfarms': ["OtherSku", "RunningState", "NoAZ", "LowCapacity"],
     'microsoft.web/sites': ["OtherSku", "RunningState"],
-      // ToDo: Function App
     // ToDo: Azure Site Recovery
     // ToDo: Service Alert
 };
@@ -842,5 +896,8 @@ document.getElementById('download-excel').addEventListener('click', () => {
 
 // Add a click event listener for the reload-page button
 document.getElementById('reload-page').addEventListener('click', () => {
+    // remove all anchor
+    window.location.hash = '';
     location.reload();
+    
 });
