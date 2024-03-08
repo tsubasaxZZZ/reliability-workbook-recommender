@@ -312,12 +312,12 @@ const checkItems = {
             en: "Azure Front Door state is failed"
         },
         comment: {
-            ja: "Azure Front Door の状態が失敗している",
-            en: "Azure Front Door state is failed"
+            ja: "Azure Front Door の状態が失敗しています。Azure Portal で詳細を確認してください。",
+            en: "Azure Front Door state is failed. Check the details in the Azure Portal."
         },
         recommendation: {
-            ja: "Azure Front Door の状態が失敗している",
-            en: "Azure Front Door state is failed"
+            ja: "Azure Front Door の状態が失敗しています。Azure Portal で詳細を確認してください。",
+            en: "Azure Front Door state is failed. Check the details in the Azure Portal."
         },
         priority: 0,
         checkFunction: (row) => {
@@ -346,16 +346,16 @@ const checkItems = {
     },
     DBStateIsNotRunning: {
         issue: {
-            ja: "DB の状態が失敗している",
-            en: "DB state is failed"
+            ja: "データベースの状態が成功状態でない",
+            en: "Database state is not successful"
         },
         comment: {
-            ja: "DB の状態が失敗している",
-            en: "DB state is failed"
+            ja: "データベースの状態が成功状態でない可能性があります。この状態はポーズの状態も含まれます。Azure Portal で詳細を確認してください。",
+            en: "The database state may not be successful. This state includes the paused state. Check the details in the Azure Portal."
         },
         recommendation: {
-            ja: "DB の状態が失敗している",
-            en: "DB state is failed"
+            ja: "データベースの状態が成功状態でない可能性があります。この状態はポーズの状態も含まれます。Azure Portal で詳細を確認してください。",
+            en: "The database state may not be successful. This state includes the paused state. Check the details in the Azure Portal."
         },
         priority: 0,
         checkFunction: (row) => {
@@ -629,7 +629,98 @@ const checkItems = {
         checkFunction: (row) => {
             return (parseInt(row['AzFWSucceededStateCount']) == 0) ? row : null;
         }
-    }
+    },
+    NoAsrSucceededState: {
+        issue: {
+            ja: "Azure Site Recovery の状態が失敗している",
+            en: "Azure Site Recovery state is failed",
+        },
+        comment: {
+            ja: "Azure Site Recovery の状態が失敗している",
+            en: "Azure Site Recovery state is failed",
+        },
+        recommendation: {
+            ja: "Azure Site Recovery の状態が失敗している",
+            en: "Azure Site Recovery state is failed",
+        },
+        priority: 0,
+        checkFunction: (row) => {
+            return (parseInt(row['AsrSucceededState']) == 0) ? row : null;
+        }
+    },
+    NoAsrSucceededReplHealth: {
+        issue: {
+            ja: "Azure Site Recovery のレプリケーションが失敗している",
+            en: "Azure Site Recovery replication state is failed",
+        },
+        comment: {
+            ja: "Azure Site Recovery のレプリケーションが失敗している",
+            en: "Azure Site Recovery replication state is failed",
+        },
+        recommendation: {
+            ja: "Azure Site Recovery のレプリケーションが失敗している",
+            en: "Azure Site Recovery replication state is failed",
+        },
+        priority: 1,
+        checkFunction: (row) => {
+            return (parseInt(row['AsrSucceededReplHealth']) == 0) ? row : null;
+        }
+    },
+    NoAsrSucceededFailoverHealth: {
+        issue: {
+            ja: "Azure Site Recovery のフェイルオーバーが失敗状態である",
+            en: "Azure Site Recovery failover state is failed"
+        },
+        comment: {
+            ja: "Azure Site Recovery のフェイルオーバーが失敗状態である",
+            en: "Azure Site Recovery failover state is failed"
+        },
+        recommendation: {
+            ja: "Azure Site Recovery のフェイルオーバーが失敗状態である",
+            en: "Azure Site Recovery failover state is failed"
+        },
+        priority: 1,
+        checkFunction: (row) => {
+            return (parseInt(row['AsrSucceededFailoverHealth']) == 0) ? row : null;
+        }
+    },
+    NoAsrSucceededProtectionStateDesc: {
+        issue: {
+            ja: "Azure Site Recovery の保護が失敗している",
+            en: "Azure Site Recovery protection state is failed",
+        },
+        comment: {
+            ja: "Azure Site Recovery の保護が失敗している",
+            en: "Azure Site Recovery protection state is failed",
+        },
+        recommendation: {
+            ja: "Azure Site Recovery の保護が失敗している",
+            en: "Azure Site Recovery protection state is failed",
+        },
+        priority: 1,
+        checkFunction: (row) => {
+            return (parseInt(row['AsrSucceededProtectionStateDesc']) == 0) ? row : null;
+        }
+    },
+
+    NoAsrSucceededReplicationAgentUpdate: {
+        issue: {
+            ja: "Azure Site Recovery のエージェントを更新する必要がある",
+            en: "Azure Site Recovery agent needs to be updated",
+        },
+        comment: {
+            ja: "Azure Site Recovery のエージェントを更新する必要がある",
+            en: "Azure Site Recovery agent needs to be updated",
+        },
+        recommendation: {
+            ja: "Azure Site Recovery のエージェントを更新する必要がある",
+            en: "Azure Site Recovery agent needs to be updated",
+        },
+        priority: 2,
+        checkFunction: (row) => {
+            return (parseInt(row['AsrSucceededReplicationAgentUpdate']) == 0) ? row : null;
+        }
+    },
 }
 
 // Mapping resource types to check functions
@@ -663,7 +754,8 @@ const resourceTypeChecks = {
     // Web
     'microsoft.web/serverfarms': ["OtherSku", "RunningState", "NoAZ", "LowCapacity"],
     'microsoft.web/sites': ["OtherSku", "RunningState"],
-    // ToDo: Azure Site Recovery
+    // Azure Site Recovery
+    'microsoft.recoveryservices/vaults': ["NoAsrSucceededState", "NoAsrSucceededReplHealth", "NoAsrSucceededFailoverHealth", "NoAsrSucceededProtectionStateDesc", "NoAsrSucceededReplicationAgentUpdate"],
     // ToDo: Service Alert
 };
 function getAnchor() {
